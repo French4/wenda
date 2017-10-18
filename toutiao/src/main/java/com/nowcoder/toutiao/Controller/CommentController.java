@@ -2,6 +2,7 @@ package com.nowcoder.toutiao.Controller;
 
 import com.nowcoder.toutiao.Service.CommentService;
 import com.nowcoder.toutiao.Service.QuestionService;
+import com.nowcoder.toutiao.Service.SensitiveService;
 import com.nowcoder.toutiao.model.Comment;
 import com.nowcoder.toutiao.model.EntityType;
 import com.nowcoder.toutiao.model.HostHolder;
@@ -16,48 +17,44 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Date;
 
-
 /**
- * Created by lenovo on 2017/9/2.
+ * Created by lenovo on 2017/10/5.
  */
 @Controller
 public class CommentController {
-
     private static final Logger logger = LoggerFactory.getLogger(CommentController.class);
+
     @Autowired
     HostHolder hostHolder;
+    @Autowired
+    SensitiveService sensitiveService;
     @Autowired
     CommentService commentService;
     @Autowired
     QuestionService questionService;
-
-    //增加一个评论
     @RequestMapping(path = {"/addComment"}, method = {RequestMethod.POST})
     public String addComment(@RequestParam("questionId") int questionId,
-                             @RequestParam("content")  String content){
-        try{
-            Comment comment = new Comment();
-            comment.setContent(content);
+                             @RequestParam("content") String comtent){
+       try{
+           Comment comment = new Comment();
+           comment.setContent(sensitiveService.filter(comtent));
+           comment.setEntityId(questionId);
+           comment.setEntityType(EntityType.ENTITY_QUESTION);
+           comment.setCreatedDate(new Date());
+           comment.setStatus(0);
+           if (hostHolder.getUser() != null){
+               comment.setUserId(hostHolder.getUser().getId());
+           }else{
+               WendaUtil.getJSONString(999);
+           }
+           commentService.addComment(comment);
+           //更改评论数量
+           int count = commentService.getCommentCount(EntityType.ENTITY_QUESTION, questionId);
 
-            if(hostHolder.getUser() != null){           //用户已登录
-                comment.setUserId(hostHolder.getUser().getId());
-            }else{                                      //用户未登录
-                comment.setUserId(WendaUtil.ANOYMOUS_USERID);//匿名用户登录
-            }
-            comment.setCreateDate(new Date());
-            comment.setEntityId(questionId); //设置问题的id
-            comment.setEntityType(EntityType.ENTITY_QUESTION); //用数字表述评论类型
-            commentService.addComment(comment);
-
-            //更新评论总数
-            int count = commentService.getCommentCount(comment.getEntityId(), comment.getEntityType());//得到评论总数
-            questionService.updateCommentCount(comment.getEntityId(), count);
-        }catch (Exception e){
-            //记下错误
-            logger.error("增加评论错误",e.getMessage());
-            System.out.print(e.getMessage());
-        }
-        return "redirect:/question/"+questionId;  //返回当前的页面
+           questionService.setCommentCount(questionId, count);
+       }catch (Exception e){
+           logger.error("增加评论失败", e.getMessage());
+       }
+       return "redirect:/question/" + String.valueOf(questionId);
     }
-
 }

@@ -2,7 +2,6 @@ package com.nowcoder.toutiao.Dao;
 
 import com.nowcoder.toutiao.model.User;
 import org.apache.ibatis.annotations.*;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -20,15 +19,18 @@ public interface UserDao {
     int addUser(User user);
 
     @Select({"SELECT * FROM ", TABLE_NAME, " where id=#{id}"})
-    User selectById(int id);
+    User selectById(@Param("id")int id);
 
     @Update({"update ", TABLE_NAME, " set password = #{password} where id = #{id}"})
     void updatePassword(User user);
 
     @Delete({"delete from ",TABLE_NAME, "where id = #{id}"})
-    void deleteUserById(int id);
+    void deleteUserById(@Param("id") int id);
 
-    @Select({"select ", SELECT_FIELDS, " from ", TABLE_NAME, " where name=#{name}"})
-    User selectByName(String name);
+    @Select({"SELECT ",SELECT_FIELDS ," FROM ",TABLE_NAME," WHERE name = #{name}"})
+    User selectByName(@Param("name") String name);
+
+    @Select({"select ",SELECT_FIELDS," FROM ",TABLE_NAME," where id = #{fromId}"})
+    User findUserById(@Param("fromId") int fromId);
 }
 

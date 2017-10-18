@@ -1,10 +1,9 @@
 package com.nowcoder.toutiao.model;
 
-import java.beans.Transient;
 import java.util.Date;
 
 /**
- * Created by lenovo on 2017/8/27.
+ * Created by lenovo on 2017/10/5.
  */
 public class Question {
     private int id;
@@ -14,7 +13,6 @@ public class Question {
     private int userId;
     private int commentCount;
 
-
     public int getId() {
         return id;
     }
@@ -23,7 +21,6 @@ public class Question {
         this.id = id;
     }
 
-
     public String getTitle() {
         return title;
     }
@@ -31,7 +28,6 @@ public class Question {
     public void setTitle(String title) {
         this.title = title;
     }
-
 
     public String getContent() {
         return content;

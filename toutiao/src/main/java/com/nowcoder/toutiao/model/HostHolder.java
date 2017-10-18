@@ -8,17 +8,17 @@ import org.springframework.stereotype.Component;
 @Component
 //直接将其实例化
 public class HostHolder {
-    //为了线程安全
-    private static ThreadLocal<User> users = new ThreadLocal<User>();
+   private static ThreadLocal<User> users = new ThreadLocal<>();
+
+    public void setUsers(User user){
+        users.set(user);
+    }
 
     public User getUser(){
-        return users.get(); //从线程池中取出
-    }
-    public void setUser(User user){
-        users.set(user); //放到线程池
+        return users.get();
     }
 
-    public void clear(){
+    public void remove(){
         users.remove();
     }
 }

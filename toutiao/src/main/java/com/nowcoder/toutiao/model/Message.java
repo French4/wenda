@@ -3,8 +3,7 @@ package com.nowcoder.toutiao.model;
 import java.util.Date;
 
 /**
- * Created by lenovo on 2017/9/3.
- * 评论中心
+ * Created by lenovo on 2017/10/5.
  */
 public class Message {
     private int id;
@@ -55,23 +54,23 @@ public class Message {
         this.createdDate = createdDate;
     }
 
-    public int getHsaRead() {
+    public int getHasRead() {
         return hasRead;
     }
 
-    public void setHsaRead(int hsaRead) {
+    public void setHasRead(int hasRead) {
         this.hasRead = hasRead;
     }
 
-    public String getConversationId() {  //永远一致,用于选出两者之间的对话
-       if(fromId < toId){
-           return String.format("%d_%d", fromId, toId);
-       }else{
-           return String.format("%d_%d", toId, fromId);
-       }
+    public void setConversationId(String conversationId){
+        this.conversationId = conversationId;
     }
 
-    public void setConversationId(String conversationId) {
-        this.conversationId = conversationId;
+    public String getConversationId(){
+        if(fromId < toId){
+            return String.format("%d_%d", fromId, toId);
+        }else{
+            return String.format("%d_%d", toId, fromId);
+        }
     }
 }

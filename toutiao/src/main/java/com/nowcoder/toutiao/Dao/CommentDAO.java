@@ -1,41 +1,38 @@
 package com.nowcoder.toutiao.Dao;
 
 import com.nowcoder.toutiao.model.Comment;
-import com.nowcoder.toutiao.model.Question;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
- * Created by lenovo on 2017/8/27.
+ * Created by lenovo on 2017/10/5.
  */
 @Mapper
 @Repository
-public interface CommentDAO {
+public interface CommentDao {
     String TABLE_NAME = " comment ";
-    //INSERT INTO question(title, context, user_id, created_data, comment_count, content)
-    // VALUES('sah', 'wq', 1,'1999-11-11',1,'sasa');
-    String INSERT_FIELDS = " user_id, content, created_date, entity_id, entity_type, status ";
-    String SELECT_FIELDS = "id, " + INSERT_FIELDS;
+    String INSERT_FIELDS = " user_id, content, created_date, entity_type, entity_id, status ";
+    String SELECT_FIELDS = " id, "+ INSERT_FIELDS;
 
-    //插入一个评论
-    @Insert({"insert into ", TABLE_NAME, "(", INSERT_FIELDS,
-            ") values (#{userId},#{content},#{createdDate},#{entityId},#{entityType}, #{status})"})
-    int addComment(Comment comment);
-
-    //选出一个实体内中的全部评论 @Param表示的是一个将entityId映射到Select语句中的entityId的名字中
-    @Select({"SELECT ", SELECT_FIELDS ," from ", TABLE_NAME ," where entity_id = #{entityId} and entity_type = #{entityType} order by " +
-            "created_date desc"})
-    List<Comment> selectCommentByEntity(@Param("entityId") int entityId, @Param("entityType") int entityType);
-
-    //选择有多少个评论
-    @Select({"SELECT count(*) FROM ", TABLE_NAME," WHERE entity_id = #{entityId} AND entity_type = #{entityType}"})
-    int getCommentCount(@Param("entityId") int entityId, @Param("entityType") int entityType);
+    //添加一个评论
+    @Insert({"insert into ",TABLE_NAME," ( ",INSERT_FIELDS,") values (#{userId}, #{content}, #{createdDate}, #{entityType}, #{entityId}," +
+            "#{status})"})
+    void addComment(Comment comment);
 
     //删除一个评论
-    @Update({"UPDATE ",TABLE_NAME," SET status = #{status} where id = #{Id}"})
-    int deleteComment(@Param("id") int id, @Param("status") int status);
+    @Update({"update ",TABLE_NAME," SET status = #{status} where entity_type = #{entityType} and entity_id = #{entityId}"})
+    void updateStatus(@Param("entityType") int entityType, @Param("entityId") int entityId, @Param("status") int status);
 
+    //选出所有的评论
+    @Select({"select ",SELECT_FIELDS," from ",TABLE_NAME," where entity_type = #{entityType} and entity_id = #{entityId}"})
+    List<Comment> selectByEntity(@Param("entityType") int entityType,  @Param("entityId") int entityId);
+
+    //得到评论总数
+    @Select({"select count(id) from ",TABLE_NAME," where entity_type = #{entityType} and entity_id = #{entityId} "})
+    int getCommentCount(@Param("entityType") int entityType,  @Param("entityId") int entityId);
+
+    @Select({"select ",SELECT_FIELDS," from ",TABLE_NAME," where id = #{commentId}"})
+    Comment getCommentById(@Param("commentId") int commentId);
 }
-

@@ -13,7 +13,7 @@
                     <div class="tooltip-arrow"></div>
                     <div class="tooltip-inner letter-chat clearfix">
                         <div class="letter-info">
-                            <p class="letter-time">${(message.message.createdDate?string("yyyy-MM-dd hh:mm:ss"))!'无数据 '}</p>
+                            <p class="letter-time">${(message.message.createdDate?string("yyyy-MM-dd HH:mm:ss"))!'无数据 '}</p>
                             <!-- <a href="javascript:void(0);" id="del-link" name="4009580">删除</a> -->
                         </div>
                         <p class="chat-content">

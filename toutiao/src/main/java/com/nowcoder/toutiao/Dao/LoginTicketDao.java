@@ -11,17 +11,15 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LoginTicketDao {
     String TABLE_NAME = " login_ticket ";
-    //INSERT INTO question(title, context, user_id, created_data, comment_count, content)
-    // VALUES('sah', 'wq', 1,'1999-11-11',1,'sasa');
-    String INSERT_FIELDS = " user_id, expired, status, ticket ";
+    String INSERT_FIFLDS = "user_id, expired, status, ticket";
 
-    @Insert({"insert into ", TABLE_NAME," (",  INSERT_FIELDS,
-            ") values(#{userId},#{expired},#{status},#{ticket})"})
-    int addTIcket(LoginTicket ticket);
+    @Insert({"insert into ", TABLE_NAME, "(", INSERT_FIFLDS,
+            ") values (#{userId},#{expired},#{status},#{ticket})"})
+    int addTicket(LoginTicket loginTicket);
 
-    @Select({"SELECT * FROM ",TABLE_NAME," where ticket=#{ticket}"})
-    LoginTicket selectByTicket(String ticket);  //登录时候查看ticket在不在
+    @Select({"Select * from ",TABLE_NAME," where ticket = #{ticket}"})
+    LoginTicket selectByTicket(String ticket);
 
-    @Update({"UPDATE ",TABLE_NAME," SET status = #{status} where ticket = #{ticket}"})
-    void updateStatus(@Param("ticket") String ticket, @Param("status") int status); //这是登出改变状态时候使用
+    @Update({"Update ",TABLE_NAME," set status = #{status} where ticket = #{ticket}"})
+    void updateStatus(@Param("ticket") String ticket, @Param("status") int status);
 }

@@ -73,7 +73,7 @@
                                                     <a data-follow="q:link" class="follow-link zg-follow meta-item" href="javascript:;" id="sfb-123114">
                                                         <i class="z-icon-follow"></i>关注问题</a>
                                                     <a href="#" name="addcomment" class="meta-item toggle-comment js-toggleCommentBox">
-                                                        <i class="z-icon-comment"></i>${vosName.question.commentCount?default("vaklin")} 条评论</a>
+                                                        <i class="z-icon-comment"></i> ${vosName.question.commentCount}条评论</a>
 
 
                                                     <button class="meta-item item-collapse js-collapse">

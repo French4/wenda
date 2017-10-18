@@ -3,7 +3,7 @@ package com.nowcoder.toutiao.model;
 import java.util.Date;
 
 /**
- * Created by lenovo on 2017/9/1.
+ * Created by lenovo on 2017/10/5.
  */
 public class Comment {
     private int id;
@@ -12,7 +12,7 @@ public class Comment {
     private int entityType;
     private String content;
     private Date createdDate;
-    private int status;  //状态
+    private int status;
 
     public int getId() {
         return id;
@@ -58,8 +58,8 @@ public class Comment {
         return createdDate;
     }
 
-    public void setCreateDate(Date createDate) {
-        this.createdDate = createDate;
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
     }
 
     public int getStatus() {

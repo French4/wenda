@@ -1,6 +1,5 @@
 package com.nowcoder.toutiao.Controller;
 
-import com.nowcoder.toutiao.Dao.MessageDAO;
 import com.nowcoder.toutiao.Service.MessageService;
 import com.nowcoder.toutiao.Service.UserService;
 import com.nowcoder.toutiao.model.HostHolder;
@@ -23,93 +22,105 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by lenovo on 2017/9/3.
+ * Created by lenovo on 2017/10/5.
  */
 @Controller
 public class MessageController {
     private static final Logger logger = LoggerFactory.getLogger(MessageController.class);
 
     @Autowired
-    HostHolder hostHolder;
-
+    private MessageService messageService;
     @Autowired
-    MessageService messageService;
-
+    private HostHolder hostHolder;
     @Autowired
-    UserService userService;
+    private UserService userService;
 
-    //选取和所有人的站内信
-   @RequestMapping(path = {"/msg/list"}, method = {RequestMethod.GET})
-    public String getConversationList(Map map){
-        if(hostHolder.getUser() == null){
-            return "redirect:/login";
-        }
-        int localUserId = hostHolder.getUser().getId();  //得到当前登录用户的id
-        //得到用户的全部站内信
-        List<Message> conversationList = messageService.getConversationList(localUserId,0,10);
-        List<ViewObject> conversations = new ArrayList<>();
-
-        //遍历
-        for(Message message : conversationList){
-            ViewObject vo = new ViewObject();
-            vo.set("message",message);
-            //得到对面用户的id
-            int targetId = message.getFromId() == localUserId? message.getToId():message.getFromId();
-            vo.set("user",userService.getUser(targetId));
-            vo.set("unread", messageService.getConversationUnreadCount(localUserId, message.getConversationId()));
-            conversations.add(vo);
-        }
-        map.put("conversations", conversations);
-        return "letter";
-    }
-
-    //详细信息,取出和一个人聊天的所有消息
-    @RequestMapping(path = {"/msg/detail"}, method = {RequestMethod.GET})
-    public String getConversationalDetail(Map map, @RequestParam("conversationId") String conversationId){
+    /**
+     * 增加一个站内信的步骤:
+     *  1.首先判断当前用户是否登录
+     *  2.登录的话，根据toName查出User对象，判断toName是否存在，不存在返回一个值
+     *  3.创建一个Message对象，存储froomId，toId，content, createdDate,conversationId
+     *  4.调用Dao层方法
+     */
+    @RequestMapping(value = {"/msg/addMessage"},method = {RequestMethod.POST})
+    @ResponseBody
+    public String addMeaasge(@RequestParam("toName") String toName, @RequestParam("content") String content){
         try{
-            List<Message> messageList = messageService.getConversationnDetail("conversationId",0,10);//取出详情页面
-            List<ViewObject> messages = new ArrayList<>();
-            for(Message message: messageList){
-                ViewObject vo = new ViewObject();
-                vo.set("message", message); //设置发送的信息
-                vo.set("user", userService.getUser(message.getFromId()));  //设置消息当前的用户
-                messages.add(vo);  //添加到集合中去
+            if(hostHolder.getUser() == null){
+                return WendaUtil.getJSONString(999);
+            }
+            User toUser = userService.findUserByName(toName);
+            if(toUser == null){
+                return WendaUtil.getJSONString(1, "用户不存在");
             }
 
-            map.put("messages", messages);
+            Message message = new Message();
+            message.setContent(content);
+            message.setToId(toUser.getId());
+            message.setFromId(hostHolder.getUser().getId());
+            message.setCreatedDate(new Date());
+            messageService.addMeaasge(message);
+            return WendaUtil.getJSONString(0);
         }catch (Exception e){
-            logger.error("获取详情失败",e.getMessage());
+            logger.error("增加站内信失败"+e.getMessage());
+            return WendaUtil.getJSONString(1,"插入站内信失败");
+        }
+    }
+
+    /**
+     *获取站内信的详细信息的步骤:
+     * 1.根据conversationId选出相关的站内信
+     * 2.取出每一条站内信，和发这个站内信的用户的头像和id关联起，放入一个ViewObject中
+     */
+    @RequestMapping(path = {"/msg/detail"}, method = {RequestMethod.GET})
+    public String conversationDetail(Map<String, Object> module, @RequestParam("conversationId")String conversationId){
+        try {
+            List<Message> conversationDetail = messageService.getMessageDetail(conversationId,0,10);
+            //更新数据库中has_read的值为1， 表示已经读过
+            messageService.updateReadStatus(hostHolder.getUser().getId(),conversationId);
+            List<ViewObject> messages = new ArrayList<>();
+            for(Message message : conversationDetail){
+                ViewObject vo = new ViewObject();
+                vo.set("message", message);
+                User user = userService.findUserById(message.getFromId());
+                if(user == null){
+                    continue;
+                }
+                vo.set("user", user);
+                messages.add(vo);
+            }
+            module.put("messages", messages);
+        }catch (Exception e){
+            logger.error("获取评论详细信息出错"+e.getMessage());
         }
         return "letterDetail";
     }
 
-
-    //发送消息
-    @RequestMapping(path = {"/msg/addMessage"}, method = {RequestMethod.POST})
-    @ResponseBody
-    public String addMessage(@RequestParam("toName") String toName,
-                             @RequestParam("content")  String content){
-        try{
-            if(hostHolder.getUser() == null){
-                return WendaUtil.getJSONString(999, "未登录");
+    /**
+     * 获取站内信列表
+     * 1.查出当前用户的id
+     * 2.根据当前用户id，得到站内信列表
+     * 3.取出每个站内信，将其和站内信发送者关联起来，并且确定为读数。
+     */
+    @RequestMapping(path = {"/msg/list"}, method = {RequestMethod.GET})
+    public String conversationList(Map<String, Object> map){
+        try {
+            int localId = hostHolder.getUser().getId();
+            List<Message> conversationList = messageService.getConversationList(localId,0,10);
+            List<ViewObject> conversations  = new ArrayList<>();
+            for (Message message : conversationList){
+                ViewObject vo  = new ViewObject();
+                vo.set("message", message);
+                int targetId = localId == message.getFromId()?message.getToId() : message.getFromId();
+                User user = userService.findUserById(targetId);
+                vo.set("user", user);
+                vo.set("unread", messageService.getUnReadMessageCount(message.getConversationId(), localId));
+                conversations.add(vo);
             }
-
-            User user = userService.selectNyName(toName); //查找用户
-            if(user == null){
-                return WendaUtil.getJSONString(1,"用户不存在");
-            }
-
-            Message message = new Message();   //开启一个消息
-            message.setCreatedDate(new Date());  //设置消息发送时间
-            message.setFromId(hostHolder.getUser().getId());  //发送者id
-            message.setToId(user.getId());  //接收者id
-            message.setContent(content);    //设置发送信息
-            messageService.addMessage(message);  //添加一个发送消息
-            return WendaUtil.getJSONString(0);
+            map.put("conversations", conversations);
         }catch (Exception e){
-            logger.error("发送消息失败" +e.getMessage());
-            System.out.print(e.getMessage());
-            return WendaUtil.getJSONString(1,"发送信息失败");
+            logger.error("获取站内信列表失败"+e.getMessage());
         }
+        return "letter";
     }
 }

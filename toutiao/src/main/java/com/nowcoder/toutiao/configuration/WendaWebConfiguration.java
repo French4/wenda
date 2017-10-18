@@ -1,10 +1,9 @@
 package com.nowcoder.toutiao.configuration;
 
-import com.nowcoder.toutiao.interceptor.LoginRequiredInterceptor;
 import com.nowcoder.toutiao.interceptor.PassportInterceptor;
+import com.nowcoder.toutiao.interceptor.loginRequiredInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
@@ -16,11 +15,12 @@ public class WendaWebConfiguration extends WebMvcConfigurerAdapter{
     @Autowired
     PassportInterceptor passportInterceptor;
     @Autowired
-    LoginRequiredInterceptor loginRequiredInterceptor;
+    loginRequiredInterceptor loginRequiredInterceptor;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(passportInterceptor);//将拦截器添加到Spring中
-        InterceptorRegistration interceptorRegistration = registry.addInterceptor(loginRequiredInterceptor).addPathPatterns("/user/*");//表示拦截的路径
+        registry.addInterceptor(passportInterceptor);
+        registry.addInterceptor(loginRequiredInterceptor).addPathPatterns("/user/*");
         super.addInterceptors(registry);
     }
 }
